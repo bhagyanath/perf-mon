@@ -7,11 +7,11 @@ import numpy as np
 from datetime import datetime, timedelta
 import uuid 
 
-# --- 1. CONFIGURATION & PAYLOAD RECOVERY ---
+# --- 1. CONFIGURATION & DYNAMIC PAYLOADS ---
 BASE_URL = "https://api.ksmart.lsgkerala.gov.in"
 
 def get_dynamic_payloads():
-    """Generates payloads with fresh UUIDs to prevent 500 errors from duplicate IDs"""
+    """Generates fresh UUIDs to prevent 500 errors from duplicate IDs"""
     now_date = datetime.now().strftime("%d-%m-%Y")
     iso_date = datetime.now().strftime("%Y-%m-%d")
     
@@ -31,10 +31,10 @@ def get_dynamic_payloads():
             "url": f"{BASE_URL}/property-services/v1/tax-assessment-requests/building-address",
             "method": "PATCH", "auth_type": "citizen",
             "payload": {
-                "id": str(uuid.uuid4()), # Fresh UUID
+                "id": str(uuid.uuid4()), 
                 "applicationId": "9f33935f-200d-489c-be06-f69d91c59994",
                 "houseName": "Sfsfs", "streetName": "Adad", "localPlaceName": "Asdad",
-                "requestId": str(uuid.uuid4()) # Fresh Request ID
+                "requestId": str(uuid.uuid4()) 
             }
         },
         "License Create (Cit)": {
@@ -42,7 +42,7 @@ def get_dynamic_payloads():
             "method": "POST", "auth_type": "citizen",
             "payload": {
                 "license": {
-                    "id": str(uuid.uuid4()), # Fresh UUID
+                    "id": str(uuid.uuid4()), 
                     "officeCode": "10132100266", "applicationType": "NEW", "applicationDate": iso_date,
                     "status": "INITIATED", "financialYear": 2025, "active": True,
                     "application": {"officeCode": "10132100266", "userName": "Bhagyanath V V"}
@@ -56,61 +56,70 @@ INTELLIGENT_OFFSETS = {"File Inbox (Off)": 233, "CR Marriage (Cit)": 373, "Prope
 
 st.set_page_config(page_title="K-SMART Hub Pro", layout="wide")
 
-# --- 2. SESSION STATE ---
+# --- 2. TELEGRAM ALERT SYSTEM ---
+def send_telegram(msg):
+    """Sends alerts to Telegram if secrets are configured"""
+    if "TELEGRAM_TOKEN" in st.secrets:
+        token = st.secrets["TELEGRAM_TOKEN"]
+        chat_id = st.secrets["TELEGRAM_CHAT_ID"]
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        try:
+            requests.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"}, timeout=5)
+        except:
+            pass
+
+# --- 3. SESSION STATE ---
 for key in ['log_data', 'monitoring_active', 'citizen_token', 'official_token', 'alert_log']:
     if key not in st.session_state:
-        if key in ['log_data', 'alert_log']: st.session_state[key] = pd.DataFrame(columns=["Timestamp", "Module", "Latency(ms)", "Status", "IsError", "Details"])
-        elif key == 'monitoring_active': st.session_state[key] = False
-        else: st.session_state[key] = None
-if 'last_run' not in st.session_state: st.session_state.last_run = datetime.now() - timedelta(days=1)
+        if key in ['log_data', 'alert_log']: 
+            st.session_state[key] = pd.DataFrame(columns=["Timestamp", "Module", "Latency(ms)", "Status", "IsError", "Details"])
+        elif key == 'monitoring_active': 
+            st.session_state[key] = False
+        else: 
+            st.session_state[key] = None
 
-# --- 3. UI HEADER ---
+if 'last_run' not in st.session_state: 
+    st.session_state.last_run = datetime.now() - timedelta(days=1)
+
 st.title("🛡️ K-SMART Performance Hub Pro")
 
-# --- 4. SIDEBAR FEATURES ---
-st.sidebar.header("⚙️ Global Settings")
+# --- 4. SIDEBAR ---
+st.sidebar.header("⚙️ Monitoring Settings")
 interval_min = st.sidebar.slider("Pulse Interval (Min)", 1, 60, 5)
 spike_sensitivity = st.sidebar.slider("Spike Sensitivity (%)", 10, 100, 30)
 
-if st.sidebar.button("📥 Export Audit CSV"):
-    if not st.session_state.log_data.empty:
-        csv = st.session_state.log_data.to_csv(index=False).encode('utf-8')
-        st.sidebar.download_button("Click to Download", csv, "ksmart_audit.csv", "text/csv")
-
-if st.sidebar.button("🗑️ Clear All Logs", type="secondary"):
+if st.sidebar.button("🗑️ Reset Logs", type="secondary"):
     st.session_state.log_data = st.session_state.log_data.iloc[0:0]
     st.session_state.alert_log = st.session_state.alert_log.iloc[0:0]
     st.rerun()
 
-# --- 5. AUTHENTICATION ---
+# --- 5. AUTH (Tabbed for Cleanliness) ---
 with st.expander("🔐 Session Access Control", expanded=not st.session_state.monitoring_active):
-    col1, col2 = st.columns(2)
-    with col1:
-        st.info(f"Citizen: {'✅' if st.session_state.citizen_token else '❌'}")
+    c_tab, o_tab = st.tabs(["Citizen Login", "Official Login"])
+    with c_tab:
         c_phone = st.text_input("Phone", value="9947788325")
         if st.button("Send Cit OTP"):
             res = requests.post(f"{BASE_URL}/user-service/v1/re-send-otp", json={"phoneNumber": c_phone, "userType": "CITIZEN"}).json()
             st.session_state.c_uuid = res['data']['otp']['UUID']
-        c_otp = st.text_input("Verify Cit OTP")
+        c_otp = st.text_input("Verify Cit OTP", type="password")
         if st.button("Log In Citizen"):
             res = requests.post(f"{BASE_URL}/user-service/v1/login", json={"phoneNumber": c_phone, "otp": c_otp, "otpId": st.session_state.c_uuid, "userType": "CITIZEN"}).json()
             st.session_state.citizen_token = res['data']['token']
             st.rerun()
-    with col2:
-        st.info(f"Official: {'✅' if st.session_state.official_token else '❌'}")
+    with o_tab:
         e_pen = st.text_input("PEN", value="M10021")
         if st.button("Send Off OTP"):
             res = requests.post(f"{BASE_URL}/employee-services/auth/generate-otp?pen={e_pen}").json()
             st.session_state.e_uuid = res['payload']
-        e_otp = st.text_input("Verify Off OTP")
+        e_otp = st.text_input("Verify Off OTP", type="password")
         if st.button("Log In Official"):
             res = requests.post(f"{BASE_URL}/employee-services/auth/verify-otp", json={"pen": e_pen, "otp": e_otp, "id": st.session_state.e_uuid}).json()
             st.session_state.official_token = res['payload']['token']
             st.rerun()
 
-# --- 6. MAIN MONITORING ENGINE ---
+# --- 6. MONITORING ENGINE ---
 if st.session_state.citizen_token and st.session_state.official_token:
-    if st.sidebar.button("▶️ TOGGLE MONITORING", type="primary"):
+    if st.sidebar.button("▶️ START MONITORING", type="primary"):
         st.session_state.monitoring_active = not st.session_state.monitoring_active
         st.rerun()
 
@@ -119,15 +128,10 @@ if st.session_state.citizen_token and st.session_state.official_token:
         next_pulse = st.session_state.last_run + timedelta(minutes=interval_min)
         time_left = (next_pulse - now).total_seconds()
         
-        # --- TOP METRICS BAR ---
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Status", "RUNNING" if time_left > 0 else "PULSING")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Status", "RUNNING")
         m2.metric("Next Pulse", f"{int(max(0, time_left)//60)}m {int(max(0, time_left)%60)}s")
-        
-        if not st.session_state.log_data.empty:
-            health = int((1 - (st.session_state.log_data['IsError'].mean())) * 100)
-            m3.metric("Health Score", f"{health}%")
-            m4.metric("Total Pings", len(st.session_state.log_data))
+        m3.metric("Alerts Fired", len(st.session_state.alert_log))
 
         if time_left <= 0:
             st.session_state.last_run = now
@@ -142,48 +146,38 @@ if st.session_state.citizen_token and st.session_state.official_token:
                     r = requests.request(cfg["method"], cfg["url"], headers=headers, json=cfg["payload"], timeout=20)
                     lat = round(max(0, ((time.time() - s_time) * 1000) - INTELLIGENT_OFFSETS.get(name, 0)), 2)
                     
-                    is_err = 0
-                    detail = "OK"
+                    is_err, detail = 0, "Normal"
+                    
+                    # 1. HTTP Error Check
                     if r.status_code not in [200, 201]:
-                        is_err = 1
-                        detail = f"Error {r.status_code}"
+                        is_err, detail = 1, f"HTTP {r.status_code}"
+                    
+                    # 2. Potential Spike Detection
                     elif not st.session_state.log_data.empty:
-                        # Logic for spike detection
-                        prev = st.session_state.log_data[st.session_state.log_data['Module'] == name]['Latency(ms)'].tail(3).mean()
-                        if lat > (prev * (1 + spike_sensitivity/100)) and lat > 150:
-                            is_err = 1
-                            detail = "Latency Spike"
+                        history = st.session_state.log_data[st.session_state.log_data['Module'] == name]
+                        if len(history) >= 3:
+                            avg_lat = history['Latency(ms)'].tail(5).mean()
+                            threshold = avg_lat * (1 + (spike_sensitivity / 100))
+                            if lat > threshold and lat > 150: # Ignore noise below 150ms
+                                is_err, detail = 1, "Potential Spike"
 
                     new_row = {"Timestamp": now.strftime("%H:%M:%S"), "Module": name, "Latency(ms)": lat, "Status": r.status_code, "IsError": is_err, "Details": detail}
                     st.session_state.log_data = pd.concat([st.session_state.log_data, pd.DataFrame([new_row])], ignore_index=True)
                     
                     if is_err:
+                        send_telegram(f"🚨 *K-SMART SPIKE ALERT*\n\n*Module:* {name}\n*Latency:* {lat}ms\n*Status:* {detail}\n*Time:* {now.strftime('%H:%M:%S')}")
                         st.session_state.alert_log = pd.concat([pd.DataFrame([new_row]), st.session_state.alert_log], ignore_index=True)
-                except: pass
+                except Exception as e:
+                    send_telegram(f"⚠️ *K-SMART MONITOR ERROR*\n{name}: {str(e)[:50]}")
             st.rerun()
 
-        # --- VISUALIZATION ---
-        tab1, tab2, tab3 = st.tabs(["📈 Latency Trends", "🧱 Performance Matrix", "🚨 Alert Console"])
+        # --- Visuals ---
+        st.plotly_chart(px.line(st.session_state.log_data, x="Timestamp", y="Latency(ms)", color="Module", height=400), use_container_width=True)
         
-        with tab1:
-            if not st.session_state.log_data.empty:
-                fig = px.line(st.session_state.log_data, x="Timestamp", y="Latency(ms)", color="Module", template="plotly_white")
-                st.plotly_chart(fig, use_container_width=True)
-        
-        with tab2:
-            if not st.session_state.log_data.empty:
-                st.subheader("Module Stability (Last 5 Cycles)")
-                pivot = st.session_state.log_data.pivot_table(index='Module', columns='Timestamp', values='Latency(ms)').iloc[:, -5:]
-                st.dataframe(pivot.style.background_gradient(cmap='YlOrRd', axis=None), use_container_width=True)
-
-        with tab3:
-            st.subheader("Incident History")
-            if not st.session_state.alert_log.empty:
-                st.table(st.session_state.alert_log.head(15))
-            else:
-                st.success("No system incidents recorded.")
+        st.subheader("📋 Recent Spikes & Alerts")
+        st.table(st.session_state.alert_log.head(10))
 
         time.sleep(1)
         st.rerun()
 else:
-    st.warning("Please authenticate both accounts to proceed.")
+    st.info("Awaiting double-session verification.")
