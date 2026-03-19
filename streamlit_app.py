@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 from datetime import datetime, timedelta
+import uuid # Add this at the top of your script
 
 # --- 1. FULL MODULE RECOVERY ---
 BASE_URL = "https://api.ksmart.lsgkerala.gov.in"
@@ -13,8 +14,25 @@ API_ENDPOINTS = {
     "Finance Ward (Off)": {"url": f"{BASE_URL}/fin-voucher-services/voucher/ward-search", "method": "POST", "auth_type": "official", "payload": {"voucherNo": "R-M130500-25052181", "officeCode": "10132100221"}},
     "CR Birth (Cit)": {"url": f"{BASE_URL}/birth-services/cr/new-birth/save-child-details", "method": "PUT", "auth_type": "citizen", "payload": {"dateOfBirth": "18-03-2026", "gender": "MALE", "districtId": 503001, "lbTypeId": 3, "lbOfficeCode": 10132100173, "placeOfBirthType": "HOSPITAL", "additionalBirthInformation": {"natureOfMedicalAttention": "DELIVERY_ATTENTION_PRIVATE", "durationOfPregnancy": 32, "deliveryMethod": "DELIVERY_NATURAL", "weightAt": 2}, "firstName": "adadsa", "firstNameInLcl": "എസ്‌എഫ്‌എസ്‌എഫ്‌എസ്", "hospitalInformation": {"hospitalOfficeCode": 10332100606, "hospitalTypeId": 2}, "birthApplicationId": "4750c4aa-d67a-4b9e-b095-3fc85aa08654", "id": "09fd56f1-39ba-4467-bcba-0acbd678cc52"}},
     "CR Death (Cit)": {"url": f"{BASE_URL}/death-services/cr/new-death/save-death-information", "method": "PUT", "auth_type": "citizen", "payload": {"aadhaar": "836412654427", "dateOfDeathFrom": "18-03-2026", "districtId": 503001, "lbTypeId": 3, "lbOfficeCode": 10132100173, "placeOfDeathType": "HOSPITAL", "firstName": "adadss", "firstNameInLcl": "അഡ്സ്", "hospitalInformation": {"hospitalOfficeCode": 10332100606, "hospitalTypeId": 2}, "id": "c032fae6-2db9-46ac-a3da-4d34412c2c2d"}},
-    "CR Marriage (Cit)": {"url": f"{BASE_URL}/marriage-services/cr/marriage-registration/information", "method": "POST", "auth_type": "citizen", "payload": {"dateOfMarriage": "18-03-2026", "districtId": 503001, "lbTypeId": 3, "lbOfficeCode": 10132100173, "placeOfMarriageType": "RELIGIOUS_INSTITUTION", "registrationType": "C"}},
-    "Property Tax (Cit)": {"url": f"{BASE_URL}/property-services/v1/tax-assessment-requests/building-address", "method": "PATCH", "auth_type": "citizen", "payload": {"id": "bc796b13-0479-471d-86fa-41bf64ed2c41", "applicationId": "9f33935f-200d-489c-be06-f69d91c59994", "houseName": "Sfsfs", "streetName": "Adad", "pincode": "695605"}},
+    "CR Marriage (Cit)": {
+        "url": f"{BASE_URL}/marriage-services/cr/marriage-registration/information",
+        "method": "POST", "auth_type": "citizen",
+        "payload": {
+            "dateOfMarriage": "18-03-2026", "districtId": 503001, "lbTypeId": 3, "lbOfficeCode": 10132100173,
+            "placeOfMarriageType": "RELIGIOUS_INSTITUTION", 
+            "religiousInstitutionInformation": {"religiousInstitutionOfficeCode": 10532107556, "id": None},
+            "registrationType": "C"
+    }},
+    "Property Tax - PTX (Citizen)": {
+        "url": f"{BASE_URL}/property-services/v1/tax-assessment-requests/building-address",
+        "method": "PATCH", "auth_type": "citizen",
+        "payload": {
+            "id": "bc796b13-0479-471d-86fa-41bf64ed2c41", "applicationId": "9f33935f-200d-489c-be06-f69d91c59994",
+            "houseName": "Sfsfs", "streetName": "Adad", "localPlaceName": "Asdad", "mainPlaceName": "Adasd",
+            "postOfficeCode": "10232100578", "pincode": "695605", "houseNameLocal": "അടട", "streetNameLocal": "അടട",
+            "requestId": "e91a0662-1264-469b-b24d-28411f202f6f"
+        }
+    },
     "License Create (Cit)": {
         "url": f"{BASE_URL}/bf-ifteos-services/application/create",
         "method": "POST", "auth_type": "citizen",
