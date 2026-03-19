@@ -28,27 +28,143 @@ def get_dynamic_payloads():
             }
         },
         "Property Tax - PTX (Cit)": {
-            "url": f"{BASE_URL}/property-services/v1/tax-assessment-requests/building-address",
-            "method": "PATCH", "auth_type": "citizen",
-            "payload": {
-                "id": str(uuid.uuid4()), 
-                "applicationId": "9f33935f-200d-489c-be06-f69d91c59994",
-                "houseName": "Sfsfs", "streetName": "Adad", "localPlaceName": "Asdad",
-                "requestId": str(uuid.uuid4()) 
-            }
-        },
-        "License Create (Cit)": {
-            "url": f"{BASE_URL}/bf-ifteos-services/application/create",
-            "method": "POST", "auth_type": "citizen",
-            "payload": {
-                "license": {
-                    "id": str(uuid.uuid4()), 
-                    "officeCode": "10132100266", "applicationType": "NEW", "applicationDate": iso_date,
-                    "status": "INITIATED", "financialYear": 2025, "active": True,
-                    "application": {"officeCode": "10132100266", "userName": "Bhagyanath V V"}
+        "url": f"{BASE_URL}/property-services/v1/tax-assessment-requests/building-address",
+        "method": "PATCH", "auth_type": "citizen",
+        "payload": {
+            "id": "bc796b13-0479-471d-86fa-41bf64ed2c41", "applicationId": "9f33935f-200d-489c-be06-f69d91c59994",
+            "houseName": "Sfsfs", "streetName": "Adad", "localPlaceName": "Asdad", "mainPlaceName": "Adasd",
+            "postOfficeCode": "10232100578", "pincode": "695605", "houseNameLocal": "അടട", "streetNameLocal": "അടട",
+            "requestId": "e91a0662-1264-469b-b24d-28411f202f6f"
+        }
+    },
+       "License  (Cit)": {
+        "url": f"{BASE_URL}/bf-ifteos-services/application/create",
+        "method": "POST", "auth_type": "citizen",
+        "payload": {
+            "license": {
+                "id": "f73b080a-1ed0-420e-9631-e0ae8133148b",
+                "officeCode": "10132100266",
+                "applicationType": "NEW",
+                "applicationDate": datetime.now().strftime("%Y-%m-%d"),
+                "status": "INITIATED",
+                "financialYear": 2025,
+                "businessSector": "NOTSET",
+                "active": True,
+                "licenseUnit": {
+                    "id": "1fcd4f62-1879-4f85-8bd5-555e0536d59d",
+                    "officeCode": "10132100266",
+                    "structurePlaceType": "BUILDING",
+                    "structurePlaceSubtype": "PERMANENT",
+                    "zonalId": "10132100266",
+                    "wardYear": "2013",
+                    "wardId": "16332106080",
+                    "wardNo": 1,
+                    "unitType": "NOTSET",
+                    "active": True,
+                    "empty": True
+                },
+                "buildings": [
+                    {
+                        "id": "0cee33c4-4737-4612-999b-47feaab77ebb",
+                        "officeCode": 10132100266,
+                        "isOwned": True,
+                        "ownershipType": "OWN",
+                        "doorNo": 1,
+                        "doorNoSub": "",
+                        "ptaxBuildingId": 50266010002901,
+                        "mainUsageId": None,
+                        "usageId": 1,
+                        "functionalityMaster": {
+                            "id": 1,
+                            "code": "Residential",
+                            "name": "Residential",
+                            "nameInLocal": "പാര്‍പ്പിടാവശ്യം",
+                            "active": False
+                        },
+                        "subUsageId": 1,
+                        "functionalitySubMaster": {
+                            "id": 1,
+                            "code": "Houses",
+                            "name": "Houses",
+                            "nameInLocal": "വീടുകള്‍",
+                            "active": False
+                        },
+                        "buildingArea": 141.22,
+                        "permissionValidFrom": None,
+                        "permissionValidTo": None,
+                        "ptaxTotal": None,
+                        "penalInterest": 0,
+                        "active": True,
+                        "isSingleAgreement": True,
+                        "wardId": 16332106080,
+                        "lbownAgreementNo": None,
+                        "lbownValidFrom": None,
+                        "lbownValidTo": None,
+                        "isCancelled": False,
+                        "owner": [
+                            {
+                                "id": "a6c8e54c-e98e-43d4-adc4-e326f2f28e9c",
+                                "officeCode": 10132100266,
+                                "aadharNo": None,
+                                "ownerName": "KRISHNAN KUTTY NADAR  P",
+                                "ownerNameLocal": "ക്യഷ്ണന്‍കുട്ടി നാടാര്‍ പി",
+                                "salutation": None,
+                                "careOfName": None,
+                                "houseNo": None,
+                                "houseName": "PXXXA VXXXXXM BXXXXXXU",
+                                "locality": None,
+                                "streetRoad": None,
+                                "postOffice": None,
+                                "pincode": "695028",
+                                "state": 502032,
+                                "country": 501077,
+                                "mobileNo": "******9201",
+                                "contactNo": "******9201",
+                                "email": None,
+                                "agreementNo": None,
+                                "validFrom": None,
+                                "validTo": None,
+                                "active": True,
+                                "buildingId": None,
+                                "landId": None,
+                                "postOfficeId": 10232100749,
+                                "district": None,
+                                "isAadhar": None,
+                                "isPassport": None,
+                                "passportNo": None,
+                                "slId": "1xg78m_mmvmhz9b_c3hqm3"
+                            }
+                        ],
+                        "isAutherised": True,
+                        "wardYear": 2013,
+                        "slId": "vzj6ee_mmvmhz9b_losrwg"
+                    }
+                ],
+                "stall": [],
+                "bunk": [],
+                "vehicle": None,
+                "land": [],
+                "vessel": None,
+                "location": {
+                    "locality": "sfsfs",
+                    "streetRoad": "sfsfs",
+                    "postOfficeId": 10232100255,
+                    "pincode": 695028,
+                    "landmark": "adada",
+                    "officeCode": "10132100266",
+                    "buildingName": "sss",
+                    "id": "2fe5b3e8-d740-4e21-b1e4-010779547dd9"
+                },
+                "application": {
+                    "officeCode": "10132100266",
+                    "createdBy": "cca5abd0-c82a-4942-99fa-9b57deee8670",
+                    "userType": "CITIZEN",
+                    "userName": "Bhagyanath V V",
+                    "userMobileNo": "9947788325"
                 }
             }
-        },
+        }
+    },
         "Inbox (Cit)": {"url": f"{BASE_URL}/inbox-services/inbox/myApplications/cca5abd0-c82a-4942-99fa-9b57deee8670?category=CR", "method": "POST", "auth_type": "citizen", "payload": {}}
     }
 
